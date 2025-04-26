@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>View Data</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <div class="card">
+        <div class="card-body shadow">
+          <h2 class="mb-4">Data Tersimpan</h2>
+          <table class="table table-bordered table-striped" id="dataTable">
+            <thead class="table-dark text-center">
+              <tr>
+                <th>No</th>
+                <th>Tanggal Input</th>
+                <th>NIK</th>
+                <th>Nama Pasien</th>
+                <th>Tggl Lahir</th>
+                <th>Usia</th>
+                <th>Tinggi Badan</th>
+                <th>Berat Badan</th>
+                <th>IMT</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <a href="inputremaja2.html" class="btn btn-secondary mt-2 shadow"
+        >Kembali ke Form</a
+      >
+    </div>
+
+    <script>
+      // Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBZ8oDmqKGfZTWW6v_AoPhrET7m3UrFN2U",
+        authDomain: "project1-93feb.firebaseapp.com",
+        databaseURL: "https://project1-93feb-default-rtdb.firebaseio.com",
+        projectId: "project1-93feb",
+        storageBucket: "project1-93feb.appspot.com",
+        messagingSenderId: "664823592081",
+        appId: "1:664823592081:web:43052220b41afda349bb30",
+        measurementId: "G-FXR6QS0BCG",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const tbody = document.querySelector("#dataTable tbody");
+
+      function renderTable(dataObj) {
+        tbody.innerHTML = "";
+        let index = 1;
+        for (let key in dataObj) {
+          const item = dataObj[key];
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${index++}</td>
+            <td>${item.tanggal || ""}</td>
+            <td>${item.nik || ""}</td>
+            <td>${item.nama || ""}</td>
+            <td>${item.ttl || ""}</td>
+            <td>${item.usia || ""}</td>
+            <td>${item.tb || ""}</td>
+            <td>${item.bb || ""}</td>
+            <td>${item.imt || ""}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      // Ambil data dari Firebase
+      db.ref("skrining_remaja").once("value", (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          renderTable(data);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center">Tidak ada data</td></tr>`;
+        }
+      });
+    </script>
+  </body>
+</html>
