@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Form Skrining</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+   <!-- Memuat jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Memuat Bootstrap JavaScript (Bundle dengan Popper.js) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+    <style>
+      .kurus {
+        color: #ffc107;
+      } /* Kuning untuk Kurus */
+      .normal {
+        color: #28a745;
+      } /* Hijau untuk Normal */
+      .kelebihan {
+        color: #ebb30d;
+      } /* Kuning untuk Kelebihan Berat */
+      .obesitas {
+        color: #dc3545;
+      } /* Merah untuk Obesitas */
+      /* Background gelap untuk input readonly */
+      input[readonly] {
+        background-color: #e9ecef; /* Warna abu-abu gelap */
+        /* color: #333; Warna teks gelap */
+      }
+      input[name="Deteksi_obesitas"] {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <a href="index.html" class="btn btn-danger shadow mb-2">Back To Dashboard</a>
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5>
+            <i class="fas fa-notes-medical me-2"></i>Form Skrining Kesehatan
+          </h5>
+        </div>
+        <div class="card-body">
+          <form id="skriningForm">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Tanggal Input</label>
+                <input
+                  type="text"
+                  name="Tanggal_input"
+                  class="form-control tanggal"
+                  required
+                />
+                <div class="invalid-feedback">Wajib diisi.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Tempat Layanan</label>
+                <input
+                  type="text"
+                  name="Tempat_Layanan"
+                  class="form-control"
+                  required
+                />
+                <div class="invalid-feedback">Wajib diisi.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Nama</label>
+                <input type="text" name="NAMA" class="form-control" list="namaList" id="namaInput" required />
+                <datalist id="namaList"></datalist>
+                <div class="invalid-feedback">Wajib diisi.</div>
+              </div>
+              
+              <!-- Modal Detail -->
+              <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="detailsModalLabel">Detail Data</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p><strong>Alamat:</strong> <span id="modalAlamat"></span></p>
+                      <p><strong>Tanggal Lahir:</strong> <span id="modalTanggalLahir"></span></p>
+                      <p><strong>Usia:</strong> <span id="modalUsia"></span></p>
+                      <p><strong>NIK:</strong> <span id="modalNIK"></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">NIK</label>
+                <input type="text" name="NIK" class="form-control" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Jenis Kelamin</label>
+                <select name="Jenis_kelamain" class="form-select" required>
+                  <option value="">Pilih...</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Tanggal Lahir</label>
+                <input
+                  type="text"
+                  name="Tanggal_lahir"
+                  class="form-control tanggal-lahir tanggal"
+                  placeholder="dd-mm-yyyy"
+                  required
+                />
+                <div class="invalid-feedback">Wajib diisi.</div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Usia</label>
+                <input type="text" name="Usia" class="form-control" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Alamat</label>
+                <input type="text" name="Alamat" class="form-control" />
+              </div>
+              <h4>Pemeriksaan Fisik</h4>
+              <hr />
+              <!-- Pemeriksaan Fisik -->
+              <div class="col-md-3">
+                <label class="form-label">Tinggi Badan (cm)</label>
+                <input type="number" name="TB" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Berat Badan (kg)</label>
+                <input type="number" name="BB" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">IMT</label>
+                <input type="text" name="IMT" class="form-control" readonly />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Deteksi Obesitas</label>
+                <input
+                  type="text"
+                  name="Deteksi_obesitas"
+                  class="form-control"
+                  readonly
+                  placeholder="Hasil Deteksi Obesitas"
+                />
+              </div>
+              <h4>Tekanan Darah</h4>
+              <hr />
+              <!-- Tekanan Darah -->
+              <div class="col-md-4">
+                <label class="form-label">Tensi Sistol (mmHg)</label>
+                <input
+                  type="number"
+                  name="Tensi_Sistol"
+                  class="form-control"
+                  required
+                  placeholder="Contoh: 130"
+                />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Tensi Diastol (mmHg)</label>
+                <input
+                  type="number"
+                  name="Tensi_Diastol"
+                  class="form-control"
+                  required
+                  placeholder="Contoh: 85"
+                />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Deteksi Hipertensi</label>
+                <input
+                  type="text"
+                  name="Deteksi_Hypertensi"
+                  class="form-control"
+                  readonly
+                  placeholder="Hasil Deteksi Hipertensi"
+                />
+              </div>
+              <h4>Deteksi Stroke</h4>
+              <hr />
+              <div class="row">
+                <div class="col-md-3">
+                  <label class="form-label">Cholesterol</label>
+                  <input
+                    type="number"
+                    name="Cholesterol"
+                    class="form-control"
+                  />
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label">Deteksi Stroke</label>
+                  <input
+                    type="text"
+                    name="Deteksi_Stroke"
+                    class="form-control fw-bold"
+                    readonly
+                    placeholder="Hasil Deteksi Stroke"
+                  />
+                </div>
+              </div>
+              <h4>Resiko Animea</h4>
+              <hr />
+              <div class="col-md-4">
+                <label class="form-label">CEK HB - PALPEBRA</label>
+                <select name="CEK_HB-PALPEBRA" class="form-select" required>
+                  <option value="">Pilih...</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Pucat">Pucat</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Kadar Hb (g/dL)</label>
+                <input
+                  type="number"
+                  name="Kadar_Hb"
+                  class="form-control"
+                  step="0.1"
+                  placeholder="Contoh: 11.5"
+                />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Resiko Anemia</label>
+                <input
+                  type="text"
+                  name="Resiko_Animea"
+                  class="form-control fw-bold"
+                  readonly
+                  placeholder="Hasil Resiko Anemia"
+                />
+              </div>
+              <h4>Deteksi Diabetes</h4>
+              <hr />
+              <div class="col-md-4">
+                <label class="form-label">Kadar Gula (mg/dL)</label>
+                <input
+                  type="number"
+                  name="Kadar_gula"
+                  class="form-control"
+                  placeholder="Contoh: 150"
+                />
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Deteksi DM</label>
+                <input
+                  type="text"
+                  name="Deteksi_DM"
+                  class="form-control fw-bold"
+                  readonly
+                  placeholder="Hasil Deteksi Diabetes"
+                />
+              </div>
+
+              <h4>Skrining Perilaku</h4>
+              <hr />
+              <!-- Perilaku -->
+              <div class="col-md-3">
+                <label class="form-label">Merokok</label>
+                <select name="MEROKOK" class="form-select">
+                  <option value="">Pilih</option>
+                  <option value="Ya">Ya</option>
+                  <option value="Tidak">Tidak</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Alkohol</label>
+                <select name="ALKOHOL" class="form-select">
+                  <option value="">Pilih</option>
+                  <option value="Ya">Ya</option>
+                  <option value="Tidak">Tidak</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Narkoba / Psikotropika</label>
+                <select name="NARKOBA" class="form-select">
+                  <option value="">Pilih</option>
+                  <option value="Ya">Ya</option>
+                  <option value="Tidak">Tidak</option>
+                </select>
+              </div>
+
+              <!-- Lainnya -->
+              <div class="col-md-2">
+                <label class="form-label">Gangguan Mental </label>
+                <select name="GANGGUAN_MENTAL_EMOSIONAL" class="form-select">
+                  <option value="">Pilih</option>
+                  <option value="Ya">Ya</option>
+                  <option value="Tidak">Tidak</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Kekerasan</label>
+                <select name="KEKERASAN" class="form-select">
+                  <option value="">Pilih</option>
+                  <option value="Ya">Ya</option>
+                  <option value="Tidak">Tidak</option>
+                </select>
+              </div>
+
+              <!-- <h4>Skrining Lain</h4>
+              <hr /> -->
+              <!-- Skrining tambahan -->
+              <!-- <div class="col-md-3">
+                <label class="form-label">Smoke Analyzer</label>
+                <input type="text" name="SMOKE_ANALIZER" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Skrining PPOK</label>
+                <input type="text" name="SKRINING_PPOK" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Skrining Penyakit Ginjal</label>
+                <input
+                  type="text"
+                  name="SKRINING_PENYAKIT_GINJAL"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Skrining Kebugaran</label>
+                <input
+                  type="text"
+                  name="SKRINING_KEBUGARAN"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Skrining Talasemia</label>
+                <input
+                  type="text"
+                  name="SKRINING_TALASEMIA"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Gangguan Menstruasi</label>
+                <input
+                  type="text"
+                  name="Gangguan_Menstruasi"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Kehamilan</label>
+                <input type="text" name="Kehamilan" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Infeksi Menular Seksual</label>
+                <input
+                  type="text"
+                  name="Infeki_Menular_Seksual"
+                  class="form-control"
+                />
+              </div>
+            </div> -->
+
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-paper-plane me-1"></i> Submit
+              </button>
+            </div>
+          </form>
+  
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Firebase konfigurasi
+      const firebaseConfig = {
+        apiKey: "AIzaSyApooUI_kzGvnppwF_x7PFafdZgRQOFSYo",
+        authDomain: "datailpremaja.firebaseapp.com",
+        databaseURL: "https://datailpremaja-default-rtdb.firebaseio.com",
+        projectId: "datailpremaja",
+        storageBucket: "datailpremaja.firebasestorage.app",
+        messagingSenderId: "783677322769",
+        appId: "1:783677322769:web:1ad6051293c636cc9863b0",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+      // Fungsi untuk update datalist dengan nama-nama dari Firebase
+      function updateDatalist() {
+        const namaInput = document.getElementById("namaInput");
+        const datalist = document.getElementById("namaList");
+
+        // Mengambil data nama-nama yang ada di Firebase
+        const namesRef = database.ref("skrining");
+        namesRef.once("value", (snapshot) => {
+          datalist.innerHTML = ""; // Bersihkan datalist
+          snapshot.forEach((childSnapshot) => {
+            const nama = childSnapshot.val().NAMA;
+            const option = document.createElement("option");
+            option.value = nama;
+            datalist.appendChild(option);
+          });
+        });
+      }
+
+      // Fungsi untuk menampilkan detail berdasarkan nama
+      function showDetails(nama) {
+        const dataRef = database.ref("skrining");
+        dataRef.once("value", (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            if (data.NAMA === nama) {
+              // Menampilkan data ke modal
+              document.getElementById("modalAlamat").textContent = data.Alamat;
+              document.getElementById("modalTanggalLahir").textContent = data.Tanggal_lahir;
+              document.getElementById("modalUsia").textContent = data.Usia;
+              document.getElementById("modalNIK").textContent = data.NIK;
+
+              // Mengisi form input otomatis
+              document.querySelector('[name="Alamat"]').value = data.Alamat;
+              document.querySelector('[name="Tanggal_lahir"]').value = data.Tanggal_lahir;
+              document.querySelector('[name="Usia"]').value = data.Usia;
+              document.querySelector('[name="NIK"]').value = data.NIK;
+
+              // Mengisi jenis kelamin dengan data yang sesuai
+              const jenisKelaminSelect = document.querySelector('[name="Jenis_kelamin"]');
+
+              // Pastikan elemen dengan name "Jenis_kelamin" ada dan terpilih
+              if (jenisKelaminSelect) {
+                  console.log(jenisKelaminSelect);  // Ini akan menampilkan elemen select di console
+                  jenisKelaminSelect.value = data.Jenis_kelamin;  // Mengisi dengan nilai jenis kelamin yang benar
+              } else {
+                  console.error("Elemen select untuk 'Jenis_kelamin' tidak ditemukan.");
+              }
+
+              // Tampilkan modal
+              $('#detailsModal').modal('show');
+            }
+          });
+        });
+      }
+
+      // Event listener untuk input nama
+      document.getElementById("namaInput").addEventListener("input", function() {
+        const nama = this.value;
+        if (nama) {
+          showDetails(nama);
+        }
+      });
+
+      // Update datalist saat halaman dimuat
+      document.addEventListener("DOMContentLoaded", () => {
+        updateDatalist();
+      });
+      const KalkulatorKesehatan = {
+        init() {
+          this.tbInput = document.querySelector('[name="TB"]');
+          this.bbInput = document.querySelector('[name="BB"]');
+          this.imtInput = document.querySelector('[name="IMT"]');
+          this.deteksiObesitasInput = document.querySelector(
+            '[name="Deteksi_obesitas"]'
+          );
+          this.tensiSistolInput = document.querySelector(
+            '[name="Tensi_Sistol"]'
+          );
+          this.tensiDiastolInput = document.querySelector(
+            '[name="Tensi_Diastol"]'
+          );
+          this.deteksiHipertensiInput = document.querySelector(
+            '[name="Deteksi_Hypertensi"]'
+          );
+          this.cholesterolInput = document.querySelector(
+            '[name="Cholesterol"]'
+          );
+          this.deteksiStrokeInput = document.querySelector(
+            '[name="Deteksi_Stroke"]'
+          );
+          this.jenisKelaminInput = document.querySelector(
+            '[name="Jenis_kelamain"]'
+          );
+          this.palpebraInput = document.querySelector(
+            '[name="CEK_HB-PALPEBRA"]'
+          );
+          this.kadarHbInput = document.querySelector('[name="Kadar_Hb"]');
+          this.resikoAnimeaInput = document.querySelector(
+            '[name="Resiko_Animea"]'
+          );
+          this.gulaInput = document.querySelector('[name="Kadar_gula"]');
+          this.deteksiDMInput = document.querySelector('[name="Deteksi_DM"]');
+
+          this.usiaInput = document.querySelector('[name="Usia"]');
+          this.eventListeners();
+        },
+
+        eventListeners() {
+          this.tbInput.addEventListener("input", () => this.hitungIMT());
+          this.bbInput.addEventListener("input", () => this.hitungIMT());
+          this.tensiSistolInput.addEventListener("input", () =>
+            this.hitungHipertensi()
+          );
+          this.tensiDiastolInput.addEventListener("input", () =>
+            this.hitungHipertensi()
+          );
+          this.cholesterolInput.addEventListener("input", () =>
+            this.hitungRisikoStroke()
+          );
+          this.jenisKelaminInput.addEventListener("change", () =>
+            this.hitungResikoAnemia()
+          );
+          this.palpebraInput.addEventListener("change", () =>
+            this.hitungResikoAnemia()
+          );
+          this.kadarHbInput.addEventListener("input", () =>
+            this.hitungResikoAnemia()
+          );
+          this.gulaInput.addEventListener("input", () =>
+            this.hitungDeteksiDM()
+          );
+        },
+
+        hitungUsia(tanggalLahirStr) {
+          const usiaInput = this.usiaInput;
+
+          // Konversi tanggal string ke objek Date
+          const birthDate = flatpickr.parseDate(tanggalLahirStr, "d-m-Y");
+
+          if (!birthDate || isNaN(birthDate.getTime())) {
+            console.log("Tanggal tidak valid");
+            usiaInput.value = "";
+            return;
+          }
+
+          const today = new Date();
+
+          // Jika tanggal lahir lebih besar dari hari ini → tidak valid
+          if (birthDate > today) {
+            console.log("Tanggal lahir di masa depan");
+            usiaInput.value = "";
+            return;
+          }
+
+          // Hitung usia
+          let usia = today.getFullYear() - birthDate.getFullYear();
+          const bulan = today.getMonth() - birthDate.getMonth();
+          if (
+            bulan < 0 ||
+            (bulan === 0 && today.getDate() < birthDate.getDate())
+          ) {
+            usia--;
+          }
+
+          usiaInput.value = usia;
+          console.log("Usia hasil hitung:", usia);
+
+          // Jalankan perhitungan PPOK setelah usia dihitung
+          this.hitungPPOK();
+        },
+        hitungIMT() {
+          const tb = parseFloat(this.tbInput.value);
+          const bb = parseFloat(this.bbInput.value);
+          if (!tb || !bb || tb <= 0 || bb <= 0) {
+            this.imtInput.value = "";
+            this.deteksiObesitasInput.value = "Isi tinggi dan berat badan";
+            this.deteksiObesitasInput.className = "form-control";
+            return;
+          }
+
+          const tbMeter = tb / 100;
+          const imt = bb / (tbMeter * tbMeter);
+          this.imtInput.value = imt.toFixed(1);
+
+          let kategori = "",
+            classKategori = "";
+          if (imt < 18.5) {
+            kategori = "Kurus";
+            classKategori = "text-warning";
+          } else if (imt < 25) {
+            kategori = "Normal";
+            classKategori = "text-success";
+          } else if (imt < 30) {
+            kategori = "Kelebihan Berat";
+            classKategori = "text-warning";
+          } else if (imt < 35) {
+            kategori = "Obesitas Kelas I";
+            classKategori = "text-danger";
+          } else if (imt < 40) {
+            kategori = "Obesitas Kelas II";
+            classKategori = "text-danger";
+          } else {
+            kategori = "Obesitas Kelas III";
+            classKategori = "text-danger";
+          }
+
+          this.deteksiObesitasInput.value = kategori;
+          this.deteksiObesitasInput.className = `form-control fw-bold ${classKategori}`;
+        },
+
+        hitungHipertensi() {
+          const sistol = parseInt(this.tensiSistolInput.value);
+          const diastol = parseInt(this.tensiDiastolInput.value);
+
+          if (isNaN(sistol) || isNaN(diastol) || sistol <= 0 || diastol <= 0) {
+            this.deteksiHipertensiInput.value = "Isi tensi sistol dan diastol";
+            this.deteksiHipertensiInput.className = "form-control";
+            return;
+          }
+
+          let kategori = "";
+          if (sistol < 120 && diastol < 80) {
+            kategori = "Normal";
+          } else if (sistol < 140 || diastol < 90) {
+            kategori = "Prehipertensi";
+          } else if (sistol < 160 || diastol < 100) {
+            kategori = "Hipertensi Tahap 1";
+          } else {
+            kategori = "Hipertensi Tahap 2";
+          }
+
+          this.deteksiHipertensiInput.value = kategori;
+        },
+
+        hitungRisikoStroke() {
+          const cholesterol = parseFloat(this.cholesterolInput.value);
+          if (isNaN(cholesterol) || cholesterol <= 0) {
+            this.deteksiStrokeInput.value = "Isi kadar kolesterol";
+            this.deteksiStrokeInput.className = "form-control";
+            return;
+          }
+
+          let risiko = "",
+            kelas = "";
+          if (cholesterol < 200) {
+            risiko = "Rendah";
+            kelas = "text-success";
+          } else if (cholesterol < 240) {
+            risiko = "Sedang";
+            kelas = "text-warning";
+          } else {
+            risiko = "Tinggi";
+            kelas = "text-danger";
+          }
+
+          this.deteksiStrokeInput.value = risiko;
+          this.deteksiStrokeInput.className = `form-control fw-bold ${kelas}`;
+        },
+
+        hitungResikoAnemia() {
+          const jenisKelamin = this.jenisKelaminInput.value;
+          const palpebra = this.palpebraInput.value;
+          const hb = parseFloat(this.kadarHbInput.value);
+
+          if (!jenisKelamin || !palpebra || isNaN(hb)) {
+            this.resikoAnimeaInput.value = "Lengkapi semua data";
+            this.resikoAnimeaInput.className = "form-control";
+            return;
+          }
+
+          let ambang = jenisKelamin === "Laki-laki" ? 13 : 12;
+          let hasil = "",
+            warna = "";
+
+          if (hb < ambang && palpebra === "Pucat") {
+            hasil = "Anemia Tinggi";
+            warna = "text-danger";
+          } else if (hb < ambang && palpebra === "Normal") {
+            hasil = "Anemia Ringan";
+            warna = "text-warning";
+          } else if (hb >= ambang && palpebra === "Pucat") {
+            hasil = "Perlu Pemeriksaan Lanjut";
+            warna = "text-warning";
+          } else {
+            hasil = "Tidak Anemia";
+            warna = "text-success";
+          }
+
+          this.resikoAnimeaInput.value = hasil;
+          this.resikoAnimeaInput.className = `form-control fw-bold ${warna}`;
+        },
+
+        hitungDeteksiDM() {
+          const gula = parseFloat(this.gulaInput.value);
+          if (isNaN(gula) || gula <= 0) {
+            this.deteksiDMInput.value = "Isi kadar gula darah";
+            this.deteksiDMInput.className = "form-control";
+            return;
+          }
+
+          let hasil = "",
+            warna = "";
+          if (gula < 140) {
+            hasil = "Normal";
+            warna = "text-success";
+          } else if (gula < 200) {
+            hasil = "Pre-diabetes";
+            warna = "text-warning";
+          } else {
+            hasil = "Diabetes Mellitus";
+            warna = "text-danger";
+          }
+
+          this.deteksiDMInput.value = hasil;
+          this.deteksiDMInput.className = `form-control fw-bold ${warna}`;
+        },
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        KalkulatorKesehatan.init();
+
+        const tanggalLahirInput = document.querySelector(".tanggal-lahir");
+
+        flatpickr(".tanggal", {
+          dateFormat: "d-m-Y",
+          allowInput: false,
+          onChange: function (selectedDates, dateStr, instance) {
+            if (instance.input.classList.contains("tanggal-lahir")) {
+              KalkulatorKesehatan.hitungUsia(dateStr);
+            }
+          },
+          onClose: function (selectedDates, dateStr, instance) {
+            if (instance.input.classList.contains("tanggal-lahir")) {
+              KalkulatorKesehatan.hitungUsia(dateStr);
+            }
+          },
+        });
+
+        // Tambahkan event blur/manual input
+        tanggalLahirInput.addEventListener("blur", () => {
+          KalkulatorKesehatan.hitungUsia(tanggalLahirInput.value);
+        });
+
+        const form = document.getElementById("skriningForm");
+
+        
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                form.classList.add("was-validated");
+                Swal.fire("Gagal", "Mohon lengkapi semua kolom wajib!", "error");
+                return;
+            }
+
+            const data = Object.fromEntries(new FormData(form).entries());
+            
+            // Menambahkan timestamp untuk mengurutkan berdasarkan waktu
+            data.timestamp = Date.now(); // Menambahkan timestamp saat data disimpan
+
+            // Simpan ke localStorage
+            localStorage.setItem("skriningData", JSON.stringify(data));
+
+            // Simpan ke Firebase
+            const newRef = database.ref("skrining").push();
+            newRef.set(data);
+
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil",
+                text: "Data berhasil disimpan!",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+
+            form.reset();
+            form.classList.remove("was-validated");
+            });
+
+      });
+      
+    </script>
+  </body>
+</html>
